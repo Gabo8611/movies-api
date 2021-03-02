@@ -15,5 +15,5 @@ func main() {
 	}
 
 	handler := handler.NewHandler(movieSearcher)
-	log.Fatal(http.ListenAndServe(":5432", handler))
+	log.Fatal(http.ListenAndServe(":5431", handler))
 }
