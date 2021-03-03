@@ -8,6 +8,9 @@ import (
 	"github.mpi-internal.com/guillermo-dlsg/movies-api/pkg/movies"
 
 	"strconv"
+
+	// "fmt"
+	"sort"
 )
 
 func createSearchMoviesHandler(s movies.MovieSearcher) func(http.ResponseWriter, *http.Request) {
@@ -29,7 +32,12 @@ func createSearchMoviesSortHandler(s movies.MovieSearcher) func(http.ResponseWri
 		
 		searchQuery := generateQuery(req)
 		response := generateResponse(s, searchQuery, w)
-		json.NewEncoder(w).Encode(response)
+
+		movies_sort := movies.Movies(response["result"].([]movies.Movie))
+
+		sort.Sort(movies.Movies(movies_sort))
+
+		json.NewEncoder(w).Encode(movies_sort)
 
 	}
 }
