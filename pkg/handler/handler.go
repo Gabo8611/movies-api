@@ -8,8 +8,6 @@ import (
 	"github.mpi-internal.com/guillermo-dlsg/movies-api/pkg/movies"
 
 	"strconv"
-
-	// "fmt"
 	"sort"
 )
 
@@ -20,7 +18,7 @@ func createSearchMoviesHandler(s movies.MovieSearcher) func(http.ResponseWriter,
 
 		// get parameter from request
 		searchQuery := generateQuery(req)
-		response := generateResponse(s, searchQuery, w)
+		response := generateResponse(s, searchQuery)
 		json.NewEncoder(w).Encode(response)
 	}
 }
@@ -31,10 +29,10 @@ func createSearchMoviesSortHandler(s movies.MovieSearcher) func(http.ResponseWri
 
 		
 		searchQuery := generateQuery(req)
-		response := generateResponse(s, searchQuery, w)
+		response := generateResponse(s, searchQuery,)
 
+		// parsing response to structure with sort interface
 		movies_sort := movies.Movies(response["result"].([]movies.Movie))
-
 		sort.Sort(movies.Movies(movies_sort))
 
 		json.NewEncoder(w).Encode(movies_sort)
@@ -51,7 +49,7 @@ func createSearchMoviesCompleteListHandler(s movies.MovieSearcher) func(http.Res
 		
 		// get only one page
 		searchQuery := generateQuery(req)
-		response := generateResponse(s, searchQuery, w)
+		response := generateResponse(s, searchQuery)
 		r := response
 		
 
@@ -73,7 +71,7 @@ func createSearchMoviesCompleteListHandler(s movies.MovieSearcher) func(http.Res
 
 		    req.URL.RawQuery = q.Encode() 
 		    searchQuery = generateQuery(req)
-			response = generateResponse(s, searchQuery, w)
+			response = generateResponse(s, searchQuery)
 		}
 
 		json.NewEncoder(w).Encode(r)
@@ -94,7 +92,7 @@ func generateQuery(req *http.Request) map[string]interface{}{
 	return searchQuery
 }
 
-func generateResponse(s movies.MovieSearcher, searchQuery map[string]interface{}, w http.ResponseWriter) map[string]interface{}{
+func generateResponse(s movies.MovieSearcher, searchQuery map[string]interface{}) map[string]interface{}{
 
 	// call service to get movies
 	movies, err := s.SearchMovies(searchQuery)

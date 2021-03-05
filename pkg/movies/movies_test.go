@@ -7,56 +7,42 @@ import (
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 
+	"sort"
 )
 
-func TestSearchMovies(t *testing.T) {
+func TestMovies(t *testing.T) {
 	cases := []struct {
 		name                string
 		mockResponseBody    string
 		expectedMovies      []Movie
 		expectedErrorString string
-		pagina string
-		urlBase string
 	}{
 		{
-			name:             "RegularCase",
-			mockResponseBody: `{"Search":[{"Title":"Star Wars: A New Hope","Year":"1977"},{"Title":"Star Wars: The Empire Strikes Back","Year":"1980"}]}`,
+			name:             "SortCase",
+			mockResponseBody: `{"Search":[{"Title":"Star Wars: The Empire Strikes Back","Year":"1980"},{"Title":"Star Wars: A New Hope","Year":"1977"}]}`,
 			expectedMovies: []Movie{
 				{Title: "Star Wars: A New Hope", Year: "1977"},
 				{Title: "Star Wars: The Empire Strikes Back", Year: "1980"},
 			},
 			expectedErrorString: "",
-			urlBase:"http://example.com/",
 		},
 		{
-			name:             "RegularPageCase",
-			mockResponseBody: `{"Search":[{"Title":"Star Wars: A New Hope","Year":"1977"},{"Title":"Star Wars: The Empire Strikes Back","Year":"1980"}]}`,
+			name:             "SorYearCase",
+			mockResponseBody: `{"Search":[{"Title":"Star Wars: The Empire Strikes Back","Year":"1980"},{"Title":"Star Wars: The Empire Strikes Back","Year":"1977"}]}`,
 			expectedMovies: []Movie{
-				{Title: "Star Wars: A New Hope", Year: "1977"},
+				{Title: "Star Wars: The Empire Strikes Back", Year: "1977"},
 				{Title: "Star Wars: The Empire Strikes Back", Year: "1980"},
 			},
 			expectedErrorString: "",
-			pagina:"2",
-			urlBase:"http://example.com/",
-		},
-		{
-			name:             "ErrorUrlCase",
-			mockResponseBody: `{"Search"`,
-			expectedMovies: []Movie(nil),
-			expectedErrorString: "Get \"http://example2.com/?apikey=mock-api-key&s=star+wars&type=movie\": no responder found",
-			urlBase:"http://example2.com/",
 		},
 	}
 
-	
+	searcher := &APIMovieSearcher{
+		URL:    "http://example.com/",
+		APIKey: "mock-api-key",
+	}
 
 	for _, c := range cases {
-
-		searcher := &APIMovieSearcher{
-			URL:    c.urlBase,
-			APIKey: "mock-api-key",
-		}
-
 		// register http mock
 		httpmock.RegisterResponder(
 			"GET",
@@ -74,14 +60,14 @@ func TestSearchMovies(t *testing.T) {
 
 			searchQuery := make(map[string]interface{})
 			searchQuery["q"] = "star wars"
-			if(c.pagina!=""){
-				searchQuery["p"] = c.pagina
-			}
 
 			//actualMovies, actualError := searcher.SearchMovies("star wars")
 			actualMovies, actualError := searcher.SearchMovies(searchQuery)
-			assert.EqualValues(t, c.expectedMovies, actualMovies)
 
+			movies_sort := Movies(actualMovies)
+			sort.Sort(Movies(movies_sort))
+
+			assert.EqualValues(t, c.expectedMovies, actualMovies)
 
 			if c.expectedErrorString == "" {
 				assert.NoError(t, actualError)
@@ -89,8 +75,6 @@ func TestSearchMovies(t *testing.T) {
 				assert.EqualError(t, actualError, c.expectedErrorString)
 			}
 		})
-
-		
 	}
 
 

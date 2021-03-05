@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
 )
 
 // APIMovieSearcher is a MovieSearcher implementation using omdbapi
@@ -22,16 +23,15 @@ func (s *APIMovieSearcher) SearchMovies(query map[string]interface{}) ([]Movie, 
 
 	// call omdbapi
 	params := url.Values{}
-	params.Add("s", query["q"].(string))
+	if(query["q"]!=nil){
+		params.Add("s", query["q"].(string))
+	}
 	params.Add("apikey", s.APIKey)
 	params.Add("type", "movie")
 	if(query["p"]!=nil){
 		params.Add("page", query["p"].(string))
 	}
-	if(query["plot"]!=nil){
-		params.Add("plot", query["plot"].(string))
-	}
-
+	
 
 	//params.Add("page", )
 	resp, err := http.Get(s.URL + "?" + params.Encode())
